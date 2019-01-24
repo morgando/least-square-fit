@@ -1,0 +1,20 @@
+/**
+ * The class Driver contains the main method that creates an object of type FunctionalFit.
+ * The minimization method is then called in FunctionalFit’s constructor.
+ * 
+ * @author Morgan Douglas
+ * @version 11/05/17
+ */
+public class Driver {
+    
+public static void main(String[] args)
+{ 
+    try
+    {
+        FunctionalFit func = new FunctionalFit(); //creates FunctionalFit object
+    }
+    catch (Exception e)
+    {
+        return;
+    }
+}

@@ -1,35 +1,3 @@
-/**
- * @author Morgan Douglas
- * @version 11/05/17
- * contains two classes: Test and FunctionalFit.
- *
- * Test contains the main method that creates an object of type FunctionalFit.
- *
- * FunctionalFit contains methods that create a functional fit for a hard-coded
- * function that minimizes square error.
- */
-
-/**
- * The class Test contains the main method that creates an object of type FunctionalFit.
- * The minimization method is then called in FunctionalFit’s constructor.
- * 
- * @author Morgan Douglas
- * @version 11/05/17
- */
-public class Test {
-    
-public static void main(String[] args)
-{ 
-    try
-    {
-        FunctionalFit func = new FunctionalFit(); //creates FunctionalFit object
-    }
-    catch (Exception e)
-    {
-        return;
-    }
-}
-
 import java.util.*;
 /**
  * FunctionalFit contains methods that deal with creating a functional fit for a
