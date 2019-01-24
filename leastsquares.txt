@@ -1,0 +1,299 @@
+/**
+ * @author Morgan Douglas
+ * @version 11/05/17
+ * contains two classes: Test and FunctionalFit.
+ *
+ * Test contains the main method that creates an object of type FunctionalFit.
+ *
+ * FunctionalFit contains methods that create a functional fit for a hard-coded
+ * function that minimizes square error.
+ */
+
+/**
+ * The class Test contains the main method that creates an object of type FunctionalFit.
+ * The minimization method is then called in FunctionalFit’s constructor.
+ * 
+ * @author Morgan Douglas
+ * @version 11/05/17
+ */
+public class Test {
+    
+public static void main(String[] args)
+{ 
+    try
+    {
+        FunctionalFit func = new FunctionalFit(); //creates FunctionalFit object
+    }
+    catch (Exception e)
+    {
+        return;
+    }
+}
+
+import java.util.*;
+/**
+ * FunctionalFit contains methods that deal with creating a functional fit for a
+ * hard-coded function that minimize square error. 
+ * 
+ * @author Morgan Douglas
+ * @version 11/05/17
+ */
+public class FunctionalFit
+{
+    public ArrayList<Double> qArray; //stores q-values that will be used in producing a functional fit
+    public BufferedReader read;
+    private Double h;                //h represents a small distance used in taking derivatives
+    private Double epsilon;
+
+    /**
+     * Constructor for objects of class FunctionalFit. Calls minimizeError, which creates
+     * a functional fit for a hard-coded function. Reasonable starting q-values should be
+     * created in the constructor and put as “startingVals” into minimizeError’s method call.
+     * The name of a file with x,y data for the function being fit should be put as minimizeError’s
+     * first parameter without “.txt”
+     * @throws IOException 
+     * @throws NumberFormatException 
+     */
+     public FunctionalFit() throws NumberFormatException, IOException
+     {
+         try
+         {
+             epsilon=eps(1.);
+
+             qArray = new ArrayList<Double>();
+
+             h=.1;
+    
+             ArrayList<Double> startingVals = new ArrayList<Double>(); //creates ArrayList in which reasonable
+                                                                       //starting values will be stored.
+
+             startingVals.add(250000.);           //user adds reasonable values to startingVals
+             startingVals.add(12.);
+             startingVals.add(10.);
+             startingVals.add(250000.);
+             startingVals.add(14.);
+             startingVals.add(10.);
+             startingVals.add(1.);
+
+             minimizeError("GeigerHisto", startingVals.size(), startingVals); //calls method that creates functional fit
+         }
+         catch(Exception e)
+         {
+             return;
+         }
+     } 
+    /**
+     * calculates the derivative of the error function with respect to a q-value indicated by
+     * qNum
+     * @param x an x-value from a file of data
+     * @param y y the y-value corresponding to this x-value in the dataset
+     * @param tempQ holds q-values that are used to estimate a y-value and to calculate a partial
+     * derivative.
+     * @param qNum index of the q-value with respect to which the error derivative is being calculated
+     * @return the derivative of the error function with respect to a q-value at some x,y
+     */
+    public Double errorDerivative(Double x, Double y, ArrayList<Double> tempQ, int qNum)
+    {  
+        return ((y-funcFitFunction(x, tempQ))*(partialTwoPt(tempQ, qNum, x, h)));
+    }
+    /**
+     * Calculates the square error with respect to one x, an exact y, and an array of q-values with which
+     * a y-value will be estimated at x.
+     * @param x an x-value from a file of data
+     * @param y the y-value corresponding to this x-value in the dataset
+     * @param tempQ is the ArrayList that holds the q-values for which a y-value will be estimated.
+     * @return the square error with respect to x, y, and a y-value estimated from given q-values
+     */
+    public Double squareError(Double x, Double y, ArrayList<Double> tempQ)
+    {
+
+        Double store = y-funcFitFunction(x, tempQ);
+        return .5*(store*store);
+    }
+    /**
+     * calculates the value for the fit of a function when an x and various q-values are inputted
+     * @param x the x-value being inputed to the function
+     * @param tempQ is the ArrayList that holds the q-values that are being inserted to the
+     * function to estimate a y-value
+     * @return the y-value of the fit when the x-value is inserted to the function
+     */
+    public Double funcFitFunction(Double x, ArrayList<Double> tempQ)
+    {
+        Double value = tempQ.get(0)*Math.pow(Math.E, -Math.pow((x-tempQ.get(1)), 2)/
+                Math.pow(tempQ.get(2), 2)) + tempQ.get(3)*Math.pow(Math.E, -(Math.pow(x-tempQ.get(4), 2)/
+                        (Math.pow(tempQ.get(5), 2)))) + tempQ.get(6);
+        
+        return value;
+    }
+    /**
+     * Calculates the derivative of the Gaussian function using the
+     * two point method with respect to one q-value indicated by the index qNum.
+     * @param tempQ the ArrayList that stores the q-values that will be used to calculate y-values
+     * @param qNum the index of q-value that derivative is being taken with respect to
+     * @param z the step size being used to increment q in either direction in order to take the
+     * derivative
+     * @return the derivative of function defined in funcFitFunction with respect to the q-value
+     * indicated by qNum
+     */
+    public Double partialTwoPt(ArrayList<Double> tempQ, int qNum, Double x, Double z)
+    {
+        Double step = z;                                            //sets the step size to z
+        
+        Double q = tempQ.get(qNum);                                 //extracts the q-value that the 
+                                                                    //partial is being
+                                                                    //taken with respect to
+
+        while(step>Math.abs(q))      //halves step size while it is greater than the absolute value of q
+            step /=2;               
+        
+        
+        Double t1 = q-(step);        //sets t1 and t2 to q minus and plus the defined step size,
+        Double t2 = q+(step);        //respectively
+        
+        ArrayList<Double> newTemp = new ArrayList<Double>(tempQ); //creates a new ArrayList newTemp
+                                                                  //with same contents as tempQ to avoid
+                                                                  //modifying qArray
+        
+        newTemp.set(qNum, t1);                                    //replaces q with t1 in newTemp,
+        Double y1 = funcFitFunction(x, newTemp);                  //then calculates output of Gaussian
+                                                                  //with these q-values
+        
+        newTemp.set(qNum, t2);                                    //replaces t1 with t2 in newTemp,
+        Double y2 = funcFitFunction(x, newTemp);                  //then calculates output of Gaussian
+                                                                  //with these q-values
+        
+        Double slope = (y2-y1)/(t2-t1);                           //calculates slope between (t1, y1)
+                                                                  //and (t2, y2)
+        
+        if(slope.isNaN())                                         //if slope evaluates to NaN, recursively
+        {                                                         //calls the function while doubling z
+            return partialTwoPt(tempQ, qNum, x, z*2);             //until the slope is not NaN.
+        }
+        else
+        {
+            return slope;                                         //returns the slope
+        }
+    }
+    /**
+     * Minimizes the square error of a functional fit with respect to q-values
+     * that is defined in funcFitFunction. Does so by determining the derivative of the error function
+     * with respect to each q-value, then multiplying that derivative by a dynamic learning factor. 
+     * These determined values are then added to their respective q-values all at once. If the error has decreased,
+     * it is assumed that a move downhill has been made, and the learning factor will be doubled. If it has increased,
+     * it is assumed that a minimum has been jumped over, so the addition will be undone for each q-value, and 
+     * the learning factor will be halved. The search stops if the error has fallen under epsilon or if 1000 steps
+     * have been taken.
+     * @param fileName a String equal to the name of the file containing x,y data. Does not include ".txt"
+     * @param numQ represents the number of q-values being used in the functional fit
+     * @param startingVals an ArrayList of q-values that will be used as a starting point for minimization.
+     * Reasonable starting values will likely make the minimization more accurate.
+     * @throws NumberFormatException
+     * @throws IOException
+     * @precondition (x,y) pairs in the file must be TAB delineated. subsequent (x,y) pairs must be
+     * on subsequent lines.
+     */
+    public void minimizeError(String fileName, int numQ, ArrayList<Double> startingVals) throws NumberFormatException, IOException
+    {
+        try
+        {
+            
+            File file = new File(fileName + ".txt");                //creates new file from given fileName
+            read = new BufferedReader(new FileReader(file));        //creates BufferedReader to parse file
+        
+            Double error = 0.0;                                     //creates variable that will store error
+            Double previousError=0.0;                               //creates variable that will store previous error
+            
+            Double learningFactor=epsilon;                          //sets learningFactor to epsilon
+            
+            ArrayList<Double> previousDerivatives = new ArrayList<Double>(); //creates previousDerivatives,
+                                                                             //which will store previous derivative
+                                                                             //of each q-value to allow jumps to be
+                                                                             //undone
+
+            int passNum=0;                                          //sets passNum to zero--will increment each
+                                                                    //time while loop is completed
+            
+            Boolean loop=true;                                      //creates boolean value that will remain true
+                                                                    //to ensure that while loop will continue
+                                                                    //until a stopping condition has been met
+                               
+            qArray.addAll(startingVals);                            //adds startingVals to qArray
+        
+            while(loop)                                             //loops until error<= epsilon or passNum==1000
+            {
+                
+                ArrayList<Double> derivatives = new ArrayList<Double>();    //creates ArrayList that will store
+                                                                            //derivatives
+                                                                            
+                for(int i=0; i<numQ; i++)                                  
+                    derivatives.add(0.0);
+                
+                read.mark(400);                                     //marks beginning of file
+                
+                while(read.ready())                                 //parses through x,y pairs in file,
+                {                                                   //calculating square error and derivative
+                                                                    //with respect to each q.
+                    String line=read.readLine();                    
+                
+                    int spaceIndex = line.indexOf("\t");
+                    
+                    Double x = Double.parseDouble(line.substring(0, spaceIndex)); //extracts x
+                    Double y = Double.parseDouble(line.substring(spaceIndex));    //extracts y
+                
+                    error += squareError(x, y, qArray);             //adds to error
+                    
+                    for(int qNum=0; qNum<numQ; qNum++)              //sets derivative for q at index qNum to index qNum
+                    {                                               //in derivatives
+                        derivatives.set(qNum, derivatives.get(qNum)+ errorDerivative(x, y, qArray, qNum));
+                    }
+                }
+                
+                if(error<=epsilon)                                  //if error falls beneath epsilon, prints q-values
+                {                                                   //and terminates search
+                    System.out.println("error less than epsilon found for q-values " + qArray);
+                    return;
+                }
+                if(passNum==1000)                                   //if passNum reaches 1000, prints error and q-values,
+                {                                                   //and terminates search
+                    System.out.println("error " + error + " " + qArray);
+                    return;
+                }
+                if(passNum==0)                                      //if passNum is 0, sets previousError to error
+                    previousError=error;                            //so that learningFactor is not put below epsilon
+                
+                if(error>previousError)                             //if error exceeds previousError, undoes additions to
+                {                                                   //all q-values and redoes the same operation with the
+                    learningFactor /=2;                             //learning factor halved
+                    for(int i=0; i<numQ; i++)
+                    {
+                        qArray.set(i, qArray.get(i)-(previousDerivatives.get(i)*learningFactor*2)+
+                                (previousDerivatives.get(i)*learningFactor));
+                    }
+                }
+                else                                                //assumes error has gone downhill--adds
+                {                                                   //learning factor * derivative (qi) to each
+                    for(int i=0; i<numQ; i++)                       //qi
+                        qArray.set(i, qArray.get(i)+learningFactor*(derivatives.get(i)));
+                    
+                    previousDerivatives=derivatives;                
+                    previousError=error;
+                    
+                    if(passNum!=0.0)                                //doubles learning factor to make bigger
+                        learningFactor*=2;                          //jumps toward a minimum
+                }
+                    
+                error=0.0;                                          //resets error to zero
+                
+                read.reset();                                       //resets BufferedReader to beginning of file
+                
+                passNum++;                                          //increments passNum
+                
+            
+            }
+            }
+        catch (Exception e)
+        {
+            e.printStackTrace();                                    //prints what exception is and line it occurred on
+            return;                                                 //terminates search
+        }
+    }
